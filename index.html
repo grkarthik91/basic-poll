@@ -145,7 +145,7 @@
         // Show or hide name input/display depending on localStorage
         const savedName = document.getElementById('name');
         
-        if (savedNamevalue.trim !== "") {
+        if (savedName.value.trim !== "") {
           nameInputDiv.style.display = 'none';
           nameDisplayDiv.style.display = 'block';
           savedNameSpan.textContent = savedName;
