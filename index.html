@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Basic Poll</title>
+</head>
+<body>
+
+  <h2>Simple Poll</h2>
+
+  <label>Name: <input type="text" id="name" /></label><br><br>
+
+  <label>Choose a date:</label><br>
+  <select id="dateSelect">
+    <option value="">--Select a date--</option>
+    <option value="2025-08-15">2025-08-15</option>
+    <option value="2025-08-22">2025-08-22</option>
+    <option value="2025-08-29">2025-08-29</option>
+  </select><br><br>
+
+  <button onclick="submitPoll()">Submit</button>
+
+  <p id="message" style="color:green;"></p>
+
+  <script>
+    function submitPoll() {
+      const name = document.getElementById('name').value.trim();
+      const date = document.getElementById('dateSelect').value;
+
+      const message = document.getElementById('message');
+      message.style.color = 'red';
+
+      if (!name) {
+        message.textContent = 'Please enter your name.';
+        return;
+      }
+      if (!date) {
+        message.textContent = 'Please select a date.';
+        return;
+      }
+
+      // For now, just show a success message.
+      message.style.color = 'green';
+      message.textContent = `Thank you, ${name}, for selecting ${date}!`;
+
+      // Clear inputs
+      document.getElementById('name').value = '';
+      document.getElementById('dateSelect').value = '';
+    }
+  </script>
+
+</body>
+</html>
