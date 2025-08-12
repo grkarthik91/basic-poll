@@ -18,8 +18,13 @@
 
   <div id="pollDiv" style="display:none;">
     <h2>Welcome <span id="userEmail"></span>! Choose your dates (up to 3 total):</h2>
-    
-    <label>Name: <input type="text" id="name" placeholder="Your name" /></label><br><br>
+
+    <div id="nameInputDiv">
+      <label>Name: <input type="text" id="name" placeholder="Your name" /></label><br><br>
+    </div>
+    <div id="nameDisplayDiv" style="display:none;">
+      <p>Name: <span id="savedName"></span></p>
+    </div>
 
     <label>Pick a date:</label><br>
     <select id="dateSelect">
@@ -30,6 +35,7 @@
     <button onclick="logout()">Logout</button>
 
     <p id="pollMsg"></p>
+
 
     <h3>Your selected dates so far:</h3>
     <ul id="userSelections"></ul>
@@ -43,12 +49,9 @@
   <script>
     // Firebase config - replace with your own
     const firebaseConfig = {
-      apiKey: "AIzaSyDOR1u3K67olwMhXWqmIgo-tJ6l8m8T5B4",
-      authDomain: "lab-talk-dates-poll.firebaseapp.com",
-      projectId: "lab-talk-dates-poll",
-      storageBucket: "lab-talk-dates-poll.firebasestorage.app",
-      messagingSenderId: "332022604058",
-      appId: "1:332022604058:web:86cc9723ecd910e43d0ca3"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
     };
     firebase.initializeApp(firebaseConfig);
 
@@ -101,7 +104,6 @@
       "26-Jun-2026",
     ];
 
-
     const loginDiv = document.getElementById('loginDiv');
     const pollDiv = document.getElementById('pollDiv');
     const userEmailSpan = document.getElementById('userEmail');
@@ -111,8 +113,12 @@
     const userSelectionsUl = document.getElementById('userSelections');
     const allResponsesList = document.getElementById('allResponsesList');
 
+    const nameInputDiv = document.getElementById('nameInputDiv');
+    const nameDisplayDiv = document.getElementById('nameDisplayDiv');
+    const savedNameSpan = document.getElementById('savedName');
+
     let currentUser = null;
-    let userSelections = [];  // dates user has chosen so far
+    let userSelections = [];
 
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -121,15 +127,22 @@
         pollDiv.style.display = 'block';
         userEmailSpan.textContent = user.email;
         pollMsg.textContent = '';
-        document.getElementById('name').value = '';
 
-        // Load user selections and populate dropdown
+        // Show or hide name input/display depending on localStorage
+        const savedName = localStorage.getItem('pollUserName');
+        if (savedName) {
+          nameInputDiv.style.display = 'none';
+          nameDisplayDiv.style.display = 'block';
+          savedNameSpan.textContent = savedName;
+        } else {
+          nameInputDiv.style.display = 'block';
+          nameDisplayDiv.style.display = 'none';
+          document.getElementById('name').value = '';
+        }
+
         await loadUserSelections();
         await loadAvailableDates();
-
-        // Load and show all responses on index page
         await loadAllResponses();
-
       } else {
         currentUser = null;
         loginDiv.style.display = 'block';
@@ -154,7 +167,6 @@
       await auth.signOut();
     }
 
-    // Load the dates this user has selected so far
     async function loadUserSelections() {
       userSelections = [];
       userSelectionsUl.innerHTML = '';
@@ -171,7 +183,6 @@
       updateUserSelectionsUI();
     }
 
-    // Show user selections in list
     function updateUserSelectionsUI() {
       userSelectionsUl.innerHTML = '';
       if (userSelections.length === 0) {
@@ -187,9 +198,7 @@
       });
     }
 
-    // Load global date counts and update dropdown accordingly
     async function loadAvailableDates() {
-      // Count how many times each date has been chosen globally
       const counts = {};
       allDates.forEach(d => counts[d] = 0);
 
@@ -202,13 +211,10 @@
         }
       });
 
-      // Filter out dates chosen >= maxGlobalSelectionsPerDate
       let availableDates = allDates.filter(d => counts[d] < maxGlobalSelectionsPerDate);
 
-      // Also filter out dates user already chose (user can't pick same date twice)
       availableDates = availableDates.filter(d => !userSelections.includes(d));
 
-      // Disable dropdown and button if user reached maxUserSelections
       if (userSelections.length >= maxUserSelections) {
         dateSelect.innerHTML = '<option>You have selected max allowed dates.</option>';
         dateSelect.disabled = true;
@@ -219,7 +225,6 @@
         document.querySelector('button[onclick="submitPoll()"]').disabled = false;
       }
 
-      // Populate dropdown
       dateSelect.innerHTML = '<option value="">--Select a date--</option>';
       availableDates.forEach(date => {
         const option = document.createElement('option');
@@ -228,7 +233,6 @@
         dateSelect.appendChild(option);
       });
 
-      // If no dates left, disable dropdown
       if (availableDates.length === 0) {
         dateSelect.innerHTML = '<option>No dates available at the moment.</option>';
         dateSelect.disabled = true;
@@ -240,25 +244,31 @@
       pollMsg.style.color = 'red';
       pollMsg.textContent = '';
 
-      const name = document.getElementById('name').value.trim();
+      let name = localStorage.getItem('pollUserName');
+      if (!name) {
+        name = document.getElementById('name').value.trim();
+        if (!name) {
+          pollMsg.textContent = 'Please enter your name.';
+          return;
+        }
+        localStorage.setItem('pollUserName', name);
+        nameInputDiv.style.display = 'none';
+        nameDisplayDiv.style.display = 'block';
+        savedNameSpan.textContent = name;
+      }
+
       const selectedDate = dateSelect.value;
 
-      if (!name) {
-        pollMsg.textContent = 'Please enter your name.';
-        return;
-      }
       if (!selectedDate) {
         pollMsg.textContent = 'Please select a date.';
         return;
       }
 
-      // Check if user already reached max selections
       if (userSelections.length >= maxUserSelections) {
         pollMsg.textContent = `You can only select up to ${maxUserSelections} dates.`;
         return;
       }
 
-      // Check if selectedDate is still available globally
       const globalSnapshot = await db.collection('responses')
         .where('date', '==', selectedDate)
         .get();
@@ -269,13 +279,11 @@
         return;
       }
 
-      // Check if user already chose this date (extra safety)
       if (userSelections.includes(selectedDate)) {
         pollMsg.textContent = 'You already selected this date.';
         return;
       }
 
-      // Save response
       try {
         await db.collection('responses').add({
           name: name,
@@ -292,7 +300,6 @@
         pollMsg.style.color = 'green';
         pollMsg.textContent = `Thanks ${name}! You selected ${selectedDate}.`;
 
-        document.getElementById('name').value = '';
         dateSelect.value = '';
       } catch (err) {
         pollMsg.textContent = 'Error submitting: ' + err.message;
@@ -322,3 +329,4 @@
 
 </body>
 </html>
+
