@@ -271,19 +271,16 @@
     async function submitPoll() {
       pollMsg.style.color = 'red';
       pollMsg.textContent = '';
-
-      let name = localStorage.getItem('pollUserName');
+      
+      name = document.getElementById('name').value.trim();
       if (!name) {
-        name = document.getElementById('name').value.trim();
-        if (!name) {
-          pollMsg.textContent = 'Please enter your name.';
-          return;
-        }
-        localStorage.setItem('pollUserName', name);
-        nameInputDiv.style.display = 'none';
-        nameDisplayDiv.style.display = 'block';
-        savedNameSpan.textContent = name;
+        pollMsg.textContent = 'Please enter your name.';
+        return;
       }
+
+      nameInputDiv.style.display = 'none';
+      nameDisplayDiv.style.display = 'block';
+      savedNameSpan.textContent = name;
 
       const selectedDate = dateSelect.value;
 
