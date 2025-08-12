@@ -191,7 +191,9 @@
       if (!single_snapshot.empty) {
         const doc = single_snapshot.docs[0]; // Get the first document
         const data = doc.data();
-        document.getElementById('name').textContent = data.name
+        document.getElementById('name').value = data.name
+      } else {
+        document.getElementById('name').value = ""
       }
     }
 
