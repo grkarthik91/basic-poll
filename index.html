@@ -140,9 +140,12 @@
         userEmailSpan.textContent = user.email;
         pollMsg.textContent = '';
 
+        await loadUserName();
+
         // Show or hide name input/display depending on localStorage
-        const savedName = localStorage.getItem('pollUserName');
-        if (savedName) {
+        const savedName = document.getElementById('name');
+        
+        if (savedNamevalue.trim !== "") {
           nameInputDiv.style.display = 'none';
           nameDisplayDiv.style.display = 'block';
           savedNameSpan.textContent = savedName;
@@ -177,6 +180,19 @@
 
     async function logout() {
       await auth.signOut();
+    }
+
+    async function loadUserName() {
+      const single_snapshot = await db.collection('responses')
+        .where('userEmail', '==', currentUser.email)
+        .limit(1)
+        .get();
+
+      if (!single_snapshot.empty) {
+        const doc = single_snapshot.docs[0]; // Get the first document
+        const data = doc.data();
+        document.getElementById('name').textContent = data.name
+      }
     }
 
     async function loadUserSelections() {
