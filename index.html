@@ -17,8 +17,6 @@
   </div>
 
   <div id="pollDiv" style="display:none;">
-    <h2>Welcome <span id="userEmail"></span>! Choose your dates (up to 3 total):</h2>
-
     <p style="font-style: italic; color: #555;">
       1. Please enter your name. <br>
       2. Please select a date and click Submit. <br>
@@ -29,7 +27,7 @@
     </p>
 
     <div id="nameInputDiv">
-      <label>Name: <input type="text" id="name" placeholder="Your name" required/></label><br><br>
+      <label>Name: <input type="text" id="name" placeholder="Your name" /></label><br><br>
     </div>
     <div id="nameDisplayDiv" style="display:none;">
       <p>Name: <span id="savedName"></span></p>
@@ -44,7 +42,6 @@
     <button onclick="logout()">Logout</button>
 
     <p id="pollMsg"></p>
-
 
     <h3>Your selected dates so far:</h3>
     <ul id="userSelections"></ul>
@@ -140,16 +137,23 @@
         userEmailSpan.textContent = user.email;
         pollMsg.textContent = '';
 
-        // Show or hide name input/display depending on localStorage
-        const savedName = localStorage.getItem('pollUserName');
-        if (savedName) {
-          nameInputDiv.style.display = 'none';
-          nameDisplayDiv.style.display = 'block';
-          savedNameSpan.textContent = savedName;
-        } else {
+        // Fetch user name fresh from Firestore on every login
+        try {
+          const userDoc = await db.collection('users').doc(user.uid).get();
+          if (userDoc.exists && userDoc.data().name) {
+            const nameFromDb = userDoc.data().name;
+            nameInputDiv.style.display = 'none';
+            nameDisplayDiv.style.display = 'block';
+            savedNameSpan.textContent = nameFromDb;
+          } else {
+            nameInputDiv.style.display = 'block';
+            nameDisplayDiv.style.display = 'none';
+            document.getElementById('name').value = '';
+          }
+        } catch (error) {
+          console.error('Error fetching user name:', error);
           nameInputDiv.style.display = 'block';
           nameDisplayDiv.style.display = 'none';
-          document.getElementById('name').value = '';
         }
 
         await loadUserSelections();
@@ -256,17 +260,31 @@
       pollMsg.style.color = 'red';
       pollMsg.textContent = '';
 
-      let name = localStorage.getItem('pollUserName');
-      if (!name) {
-        name = document.getElementById('name').value.trim();
-        if (!name) {
-          pollMsg.textContent = 'Please enter your name.';
-          return;
+      // Get name from Firestore or input box
+      let name;
+      try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists && userDoc.data().name) {
+          name = userDoc.data().name;
+          nameInputDiv.style.display = 'none';
+          nameDisplayDiv.style.display = 'block';
+          savedNameSpan.textContent = name;
+        } else {
+          // No name yet, get from input box
+          name = document.getElementById('name').value.trim();
+          if (!name) {
+            pollMsg.textContent = 'Please enter your name.';
+            return;
+          }
+          // Save name in Firestore
+          await db.collection('users').doc(currentUser.uid).set({ name }, { merge: true });
+          nameInputDiv.style.display = 'none';
+          nameDisplayDiv.style.display = 'block';
+          savedNameSpan.textContent = name;
         }
-        localStorage.setItem('pollUserName', name);
-        nameInputDiv.style.display = 'none';
-        nameDisplayDiv.style.display = 'block';
-        savedNameSpan.textContent = name;
+      } catch (error) {
+        pollMsg.textContent = 'Error fetching or saving name: ' + error.message;
+        return;
       }
 
       const selectedDate = dateSelect.value;
@@ -281,6 +299,7 @@
         return;
       }
 
+      // Check global limits for this date
       const globalSnapshot = await db.collection('responses')
         .where('date', '==', selectedDate)
         .get();
@@ -291,6 +310,7 @@
         return;
       }
 
+      // Check if user already selected this date
       if (userSelections.includes(selectedDate)) {
         pollMsg.textContent = 'You already selected this date.';
         return;
@@ -341,4 +361,5 @@
 
 </body>
 </html>
+
 
