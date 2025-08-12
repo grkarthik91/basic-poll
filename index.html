@@ -192,8 +192,10 @@
         const doc = single_snapshot.docs[0]; // Get the first document
         const data = doc.data();
         document.getElementById('name').value = data.name;
+        document.getElementById('savedName').textContent = data.name;
       } else {
         document.getElementById('name').value = "";
+        document.getElementById('savedName').textContent = "";
       }
     }
 
