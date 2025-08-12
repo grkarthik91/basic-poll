@@ -19,8 +19,16 @@
   <div id="pollDiv" style="display:none;">
     <h2>Welcome <span id="userEmail"></span>! Choose your dates (up to 3 total):</h2>
 
+    <p style="font-style: italic; color: #555;">
+      1. Please enter your name. <br>
+      2. Please select a date and click Submit. <br>
+      3. Then choose the next date and click Submit. <br>
+      4. Choose and the third date and cick Submit. <br>
+      5. No more date selections allowed. <br>
+    </p>
+
     <div id="nameInputDiv">
-      <label>Name: <input type="text" id="name" placeholder="Your name" /></label><br><br>
+      <label>Name: <input type="text" id="name" placeholder="Your name" required/></label><br><br>
     </div>
     <div id="nameDisplayDiv" style="display:none;">
       <p>Name: <span id="savedName"></span></p>
