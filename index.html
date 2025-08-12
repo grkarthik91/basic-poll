@@ -15,13 +15,7 @@
     <button onclick="login()">Login</button>
     <p id="loginMsg" style="color:red;"></p>
   </div>
-
-  <!-- Link to responses.html page -->
-  <p>
-    <a href="responses.html" target="_blank" style="text-decoration:none; font-weight:bold;">
-      View My Poll Responses
-    </a>
-  </p>
+  
 
   <div id="pollDiv" style="display:none;">
     <h2>Welcome <span id="userEmail"></span>! Choose your dates (up to 3 total):</h2>
@@ -37,8 +31,13 @@
     <button onclick="logout()">Logout</button>
     <p id="pollMsg"></p>
 
+    <!-- Link to responses.html page -->
+    <p>
+      <a href="responses.html" target="_blank" style="text-decoration:none; font-weight:bold;">
+        View My Poll Responses
+      </a>
+    </p>
     
-
     <h3>Your selected dates so far:</h3>
     <ul id="userSelections"></ul>
   </div>
