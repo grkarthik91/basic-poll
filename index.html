@@ -137,7 +137,8 @@
         userEmailSpan.textContent = user.email;
         pollMsg.textContent = '';
 
-        // Fetch user name fresh from Firestore on every login
+        // Comment this out temporarily to test
+        /*
         try {
           const userDoc = await db.collection('users').doc(user.uid).get();
           if (userDoc.exists && userDoc.data().name) {
@@ -155,6 +156,13 @@
           nameInputDiv.style.display = 'block';
           nameDisplayDiv.style.display = 'none';
         }
+        */
+        
+        // Always show input for now
+        nameInputDiv.style.display = 'block';
+        nameDisplayDiv.style.display = 'none';
+        document.getElementById('name').value = '';
+
 
         await loadUserSelections();
         await loadAvailableDates();
