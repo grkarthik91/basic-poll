@@ -157,11 +157,24 @@
           nameDisplayDiv.style.display = 'none';
         }
         */
-        
+        /*
         // Always show input for now
         nameInputDiv.style.display = 'block';
         nameDisplayDiv.style.display = 'none';
         document.getElementById('name').value = '';
+        */
+
+        // Show or hide name input/display depending on localStorage
+        const savedName = localStorage.getItem('pollUserName');
+        if (savedName) {
+          nameInputDiv.style.display = 'none';
+          nameDisplayDiv.style.display = 'block';
+          savedNameSpan.textContent = savedName;
+        } else {
+          nameInputDiv.style.display = 'block';
+          nameDisplayDiv.style.display = 'none';
+          document.getElementById('name').value = '';
+        }
 
 
         await loadUserSelections();
