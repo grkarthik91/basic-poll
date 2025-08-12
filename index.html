@@ -134,41 +134,32 @@
 
     auth.onAuthStateChanged(async (user) => {
       if (user) {
-        // User logged in
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        const nameDisplay = document.getElementById('userNameDisplay');
-        const nameInputContainer = document.getElementById('nameInputContainer');
-  
-        if (userDoc.exists && userDoc.data().name) {
-          // Name exists — show welcome with name
-          nameDisplay.textContent = userDoc.data().name;
-          nameInputContainer.style.display = 'none';
+        currentUser = user;
+        loginDiv.style.display = 'none';
+        pollDiv.style.display = 'block';
+        userEmailSpan.textContent = user.email;
+        pollMsg.textContent = '';
+
+        // Show or hide name input/display depending on localStorage
+        const savedName = localStorage.getItem('pollUserName');
+        if (savedName) {
+          nameInputDiv.style.display = 'none';
+          nameDisplayDiv.style.display = 'block';
+          savedNameSpan.textContent = savedName;
         } else {
-          // No name yet — show input to get name
-          nameDisplay.textContent = 'User';
-          nameInputContainer.style.display = 'block';
+          nameInputDiv.style.display = 'block';
+          nameDisplayDiv.style.display = 'none';
+          document.getElementById('name').value = '';
         }
+
+        await loadUserSelections();
+        await loadAvailableDates();
+        await loadAllResponses();
       } else {
-        // No user logged in — you can redirect to login or show login form here
-        document.getElementById('userNameDisplay').textContent = '';
-        document.getElementById('nameInputContainer').style.display = 'none';
-      }
-    });
-  
-    // Save name button click handler
-    document.getElementById('saveNameBtn').addEventListener('click', async () => {
-      const name = document.getElementById('nameInput').value.trim();
-      const user = auth.currentUser;
-      if (!name) {
-        alert('Please enter your name.');
-        return;
-      }
-      if (user) {
-        await db.collection('users').doc(user.uid).set({ name }, { merge: true });
-        document.getElementById('userNameDisplay').textContent = name;
-        document.getElementById('nameInputContainer').style.display = 'none';
-      } else {
-        alert('User not logged in.');
+        currentUser = null;
+        loginDiv.style.display = 'block';
+        pollDiv.style.display = 'none';
+        loginMsg.textContent = '';
       }
     });
 
