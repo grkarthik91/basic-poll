@@ -14,7 +14,7 @@
     <input type="password" id="password" placeholder="Password" /><br>
 
     <!-- Forgot password link -->
-    <p><a href="#" id="resetPasswordLink">Forgot password?</a></p>
+    <small><a href="#" id="resetPasswordLink" onclick="resetPassword()">Forgot password?</a></small><br><br>
 
     <button onclick="login()">Login</button>
     <p id="loginMsg" style="color:red;"></p>
@@ -172,6 +172,22 @@
         loginMsg.textContent = '';
       }
     });
+
+    async function resetPassword() {
+        const email = document.getElementById('email').value.trim();
+        if (!email) {
+            document.getElementById('loginMsg').textContent = 'Please enter your email first.';
+            return;
+        }
+        try {
+            await firebase.auth().sendPasswordResetEmail(email);
+            document.getElementById('loginMsg').style.color = 'green';
+            document.getElementById('loginMsg').textContent = 'Password reset email sent.';
+        } catch (error) {
+            document.getElementById('loginMsg').style.color = 'red';
+            document.getElementById('loginMsg').textContent = error.message;
+        }
+    }
 
     async function login() {
       loginMsg.textContent = '';
